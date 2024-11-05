@@ -1,0 +1,23 @@
+#dependencies
+composer require livewire/livewire
+composer require ryangjchandler/blade-tabler-icons
+bun add -D tailwindcss postcss autoprefixer daisyui tailwind-scrollbar-hide
+bun tailwindcss init -p
+
+//laravel tailwindcss
+https://tailwindcss.com/docs/guides/laravel
+
+welcome.blade => deleted.. user livewire file
+
+=> selalu lihat web routes
+
+Font menggunakan google font Montserrat+Alternates
+
+php artisan make:livewire ...
+php artisan livewire:Form ...
+
+=>gunakan pa storage:link
+
+install laravel maatwebsite untuk excel (laravel excel)
+-> composer require maatwebsite/excel
+-> php artisan make:export TranksaksiExport 
