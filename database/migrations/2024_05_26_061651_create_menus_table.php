@@ -18,6 +18,8 @@ return new class extends Migration
             $table->text('desc')->nullable();
             $table->string('type');
             $table->string('photo')->nullable();
+            $table->integer('stock')->default(0);
+            $table->enum('availability', ['tersedia', 'tidak_tersedia'])->default('tersedia');
             $table->timestamps();
         });
     }

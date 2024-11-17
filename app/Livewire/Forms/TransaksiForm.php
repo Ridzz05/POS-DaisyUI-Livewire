@@ -54,4 +54,14 @@ class TransaksiForm extends Form
         $this->transaksi->update($validate);
         $this->reset();
     }
+
+    public function rules()
+    {
+        return [
+            'items' => 'required|array',
+            'price' => 'required|numeric|min:0',
+            'customer_id' => 'nullable|exists:customers,id',
+            'desc' => 'nullable|string'
+        ];
+    }
 }

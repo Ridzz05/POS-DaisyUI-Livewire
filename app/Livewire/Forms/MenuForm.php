@@ -14,11 +14,25 @@ class MenuForm extends Form
     public $name;
     public $price;
     public $desc;
-    public $type = 'coffee';
+    public $type;
+    public $stock;
+    public $availability;
     public $photo;
     public ?Menu $menu = null;
 
-    // Set menu name
+    public function rules()
+    {
+        return [
+            'name' => 'required',
+            'price' => 'required|numeric',
+            'type' => 'required',
+            'desc' => 'nullable',
+            'stock' => 'required|numeric|min:0',
+            'availability' => 'required|in:tersedia,tidak_tersedia',
+            'photo' => 'nullable|image|max:1024',
+        ];
+    }
+
     public function setMenu(Menu $menu)
     {
         $this->menu = $menu;
@@ -26,67 +40,54 @@ class MenuForm extends Form
         $this->price = $menu->price;
         $this->type = $menu->type;
         $this->desc = $menu->desc;
-        $this->photo = null; // Reset photo for editing
+        $this->stock = $menu->stock;
+        $this->availability = $menu->availability;
+        $this->photo = null;
     }
 
-    // Function to save data
     public function store()
     {
-        $validatedData = $this->validate([
-            'name' => 'required',
-            'price' => 'required|numeric',
-            'type' => 'required',
-            'desc' => 'nullable',
-            'photo' => 'nullable|image|max:1024', // Validate image size (1MB max)
-        ]);
+        $validatedData = $this->validate();
 
-        // Upload and save photo if available
         if ($this->photo) {
-            $validatedData['photo'] = $this->photo->store('menu', 'public'); // Store in 'menu' directory
+            $validatedData['photo'] = $this->photo->storeAs(
+                'menu', 
+                date('YmdHis') . '_' . str_replace(' ', '_', $this->photo->getClientOriginalName()), 
+                'public'
+            );
         }
 
-        // Create the menu
         Menu::create($validatedData);
-
-        // Reset the form
-        $this->resetForm(); // Reset all relevant fields after saving
+        $this->reset();
     }
 
-    // Function to update data
     public function update()
     {
-        $validatedData = $this->validate([
-            'name' => 'required',
-            'price' => 'required|numeric',
-            'type' => 'required',
-            'desc' => 'nullable',
-            'photo' => 'nullable|image|max:1024', // Validate image size (1MB max)
-        ]);
+        $validatedData = $this->validate();
 
-        // Check if a new photo has been uploaded
         if ($this->photo) {
-            // Store new photo and delete the old one if exists
-            $validatedData['photo'] = $this->photo->store('menu', 'public'); // Store in 'menu' directory
-            
-            // Optionally delete the old photo if it exists
-            if ($this->menu->photo && Storage::disk('public')->exists($this->menu->photo)) {
+            // Hapus foto lama jika ada
+            if ($this->menu->photo) {
                 Storage::disk('public')->delete($this->menu->photo);
             }
+
+            // Simpan foto baru dengan format: menu/TIMESTAMP_namafile.ekstensi
+            $validatedData['photo'] = $this->photo->storeAs(
+                'menu', 
+                date('YmdHis') . '_' . str_replace(' ', '_', $this->photo->getClientOriginalName()), 
+                'public'
+            );
         } else {
-            // If no new photo, retain the old photo
             $validatedData['photo'] = $this->menu->photo;
         }
 
-        // Update the menu data
         $this->menu->update($validatedData);
-
-        // Reset the form
-        $this->resetForm(); // Reset all relevant fields after updating
+        $this->reset();
     }
 
-    // Reset form fields
-    protected function resetForm()
+    public function reset(...$properties)
     {
-        $this->reset(['name', 'price', 'desc', 'type', 'photo']); // Reset relevant fields
+        $this->menu = null;
+        parent::reset(...$properties);
     }
 }

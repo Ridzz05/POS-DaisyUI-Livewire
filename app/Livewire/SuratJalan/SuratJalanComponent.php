@@ -39,6 +39,13 @@ class SuratJalanComponent extends Component
         return view('livewire.surat-jalan.component', compact('suratjalans', 'customers'));
     }
 
+    public function print($id)
+    {
+        $suratJalan = SuratJalan::findOrFail($id);
+        return redirect()->route('surat-jalan.print', ['id' => $suratJalan->id]);
+    }
+
+
     public function create()
     {
         $this->resetInputFields();

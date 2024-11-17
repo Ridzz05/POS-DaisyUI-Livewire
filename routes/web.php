@@ -1,9 +1,9 @@
 <?php
 
 use App\Livewire\Auth\Login;
+use App\Models\SuratJalan;
 use App\Livewire\Auth\Profile;
 use App\Livewire\Home;
-use App\Livewire\Stok\StockManagement;
 use App\Livewire\Supplier\SupplierIndex;
 use App\Livewire\BarangMasuk\BarangMasukIndex;
 use App\Livewire\Menu\MenuManager; // Perbaikan di sini
@@ -20,6 +20,11 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::get('/surat-jalan/print/{id}', function ($id) {
+    $suratJalan = SuratJalan::findOrFail($id);
+    return view('livewire.surat-jalan.print', compact('suratJalan'));
+})->name('surat-jalan.print');
+
 // Routes untuk guest (belum login)
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
@@ -30,6 +35,7 @@ Route::get('/suratjalan', SuratJalanComponent::class)->name('suratjalan.index');
 
 // Routes untuk user yang sudah login
 Route::middleware('auth')->group(function () {
+    
     // Dashboard & Profile
     Route::get('/home', Home::class)->name('home');
     Route::get('/profile', Profile::class)->name('profile');
@@ -45,9 +51,6 @@ Route::middleware('auth')->group(function () {
     
     // Barang Masuk
     Route::get('/barang-masuk', BarangMasukIndex::class)->name('barang-masuk.index');
-    
-    // Stock Management
-    Route::get('/stok', StockManagement::class)->name('stok.index');
     
     // Transaksi Management
     Route::prefix('transaksi')->name('transaksi.')->group(function () {

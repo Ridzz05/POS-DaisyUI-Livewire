@@ -14,19 +14,33 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Check if admin user exists
-        $admin = User::where('email', 'admin@example.com')->first();
+        $admin = User::where('email', 'admin@filo.petshop.com')->first();
 
         if ($admin) {
-            // Update existing admin password
+            // Update existing admin password and role
             $admin->update([
-                'password' => Hash::make('password')
+                'password' => Hash::make('bona123'),
+                'role' => 'Admin'
             ]);
         } else {
             // Create new admin user if doesn't exist
             User::create([
-                'name' => 'Admin',
-                'email' => 'admin@example.com',
-                'password' => Hash::make('password')
+                'name' => 'Bona',
+                'email' => 'admin@filo.petshop.com',
+                'password' => Hash::make('bona123'),
+                'role' => 'Admin'
+            ]);
+        }
+
+        // Create a user with role "Kasir" if not already exists
+        $kasir = User::where('email', 'kasir@filo.petshop.com')->first();
+
+        if (!$kasir) {
+            User::create([
+                'name' => 'Kasir Fio',
+                'email' => 'kasir@filo.petshop.com',
+                'password' => Hash::make('kasir123'),
+                'role' => 'Kasir'
             ]);
         }
     }

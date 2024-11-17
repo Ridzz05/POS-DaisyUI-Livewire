@@ -52,9 +52,9 @@
                                             </button>
                                             <button wire:click="print({{ $suratJalan->id }})" class="btn-s btn btn-square btn-info">
                                                 <x-tabler-printer class="size-4" />
-                                            </button>
+                                            </button>                                                                             
                                         </div>
-                                    </td>
+                                    </td>                                    
                                 </tr>
                             @empty
                                 <tr>

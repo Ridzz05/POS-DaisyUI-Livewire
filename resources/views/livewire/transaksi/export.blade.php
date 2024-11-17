@@ -12,7 +12,7 @@
                 ]) wire:model='bulan'>
                 <button wire:click='export' class="btn btn-primary">
                     <x-tabler-upload class="size-5" />
-                    Klik to export
+                    Ekspor Data
                 </button>
             </form>
         </div>

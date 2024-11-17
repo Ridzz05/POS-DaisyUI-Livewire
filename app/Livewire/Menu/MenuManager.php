@@ -4,10 +4,11 @@ namespace App\Livewire\Menu;
 
 use App\Livewire\Forms\MenuForm;
 use App\Models\Menu;
+use App\Models\Stock;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\Storage; // Pastikan untuk mengimpor namespace Storage
+use Illuminate\Support\Facades\Storage;
 
 class MenuManager extends Component
 {
@@ -15,7 +16,7 @@ class MenuManager extends Component
     public $photo;
     public $show = false;
     public $search;
-    
+
     use WithFileUploads;
 
     // Dispatch reload
@@ -26,7 +27,7 @@ class MenuManager extends Component
     public function createMenu()
     {
         $this->show = true;
-        $this->form->reset(); // Reset the form when creating a new menu
+        $this->form->reset(); // Reset form saat membuat menu baru
     }
 
     // Function simpan pada wire:submit action
@@ -34,45 +35,43 @@ class MenuManager extends Component
     {
         // Validasi foto yang diupload
         $this->validate([
-            'photo' => 'nullable|image|max:1024', // Validasi gambar (1MB max)
+            'photo' => 'nullable|image|max:1024',
         ]);
-    
+
         // Simpan foto jika ada
         if ($this->photo) {
-            // Simpan foto ke storage dan dapatkan nama file
-            $foto_name = $this->photo->store('menu', 'public'); // Simpan di public/menu
+            // Hapus foto lama jika ada
+            if (isset($this->form->menu) && $this->form->menu->photo) {
+                Storage::disk('public')->delete($this->form->menu->photo);
+            }
+            
+            // Simpan foto baru
+            $foto_name = $this->photo->storeAs('menu', time() . '_' . $this->photo->getClientOriginalName(), 'public');
         }
-    
-        // Jika ada menu yang sedang diedit
+
         if (isset($this->form->menu)) {
             // Update menu
             $this->form->update();
-            // Jika foto diupload, pastikan untuk memperbarui nama foto di menu
             if ($this->photo) {
-                // Hapus foto lama dari storage
-                if ($this->form->menu->photo) {
-                    Storage::disk('public')->delete($this->form->menu->photo);
-                }
-                // Update foto baru
-                $this->form->menu->photo = $foto_name; // Gunakan nama file yang disimpan
-                $this->form->menu->save(); // Simpan perubahan pada menu
+                $this->form->menu->photo = $foto_name;
+                $this->form->menu->save();
             }
         } else {
-            // Store new menu
+            // Simpan menu baru
             Menu::create([
                 'name' => $this->form->name,
                 'price' => $this->form->price,
                 'desc' => $this->form->desc,
                 'type' => $this->form->type,
-                'photo' => isset($foto_name) ? $foto_name : null, // Pastikan foto_name ada
+                'stock' => $this->form->stock,
+                'availability' => $this->form->availability,
+                'photo' => $foto_name ?? null,
             ]);
         }
-    
-        // Tutup modal dan reload data
+
         $this->closeModal();
         $this->dispatch('reload');
     }
-    
 
     // Dispatch edit data dari menu index
     #[On('editMenu')]
@@ -80,7 +79,7 @@ class MenuManager extends Component
     {
         $this->form->setMenu($menu);
         $this->show = true;
-        $this->photo = null; // Reset photo for editing
+        $this->photo = null; // Reset photo untuk editing
     }
 
     // Dispatch delete data dari menu index
@@ -89,24 +88,23 @@ class MenuManager extends Component
     {
         // Hapus foto dari storage jika ada
         if ($menu->photo) {
-            Storage::disk('public/menu')->delete($menu->photo);
+            Storage::disk('public')->delete($menu->photo); // Perbaikan: gunakan disk public saja
         }
 
         $menu->delete();
         $this->dispatch('reload');
     }
 
-    // Close modal
+    // Tutup modal
     public function closeModal()
     {
         $this->show = false;
         $this->photo = null; // Reset photo
-        $this->form->reset(); // Reset all form
+        $this->form->reset(); // Reset semua form
     }
 
     public function render()
     {
-        // Query menus with search functionality
         $menus = Menu::when($this->search, function ($query) {
             $query->where('name', 'like', '%' . $this->search . '%')
                   ->orWhere('type', 'like', '%' . $this->search . '%')
@@ -115,7 +113,8 @@ class MenuManager extends Component
 
         return view('livewire.menu.menu', [
             'menus' => $menus,
-            'types' => Menu::$types // static menu $types pada model
+            'types' => Menu::$types,
+            'stocks' => Stock::where('status', 'tersedia')->get()
         ]);
     }
 }
